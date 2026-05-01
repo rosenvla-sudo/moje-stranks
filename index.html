@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<title>Geometrický filtr podobnosti</title>
+
+<!-- MathJax -->
+<script>
+window.MathJax = { tex: { inlineMath: [['$', '$']] } };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<style>
+body {
+    font-family: Georgia, serif;
+    margin: 0;
+    background: #f8f9fb;
+    color: #222;
+}
+
+header {
+    background: #111;
+    color: white;
+    padding: 40px;
+    text-align: center;
+}
+
+.container {
+    max-width: 1000px;
+    margin: auto;
+    padding: 30px;
+    background: white;
+}
+
+h1, h2 {
+    text-align: center;
+}
+
+canvas {
+    border: 1px solid #ccc;
+    margin: 10px;
+}
+
+.controls {
+    text-align: center;
+    margin: 20px;
+}
+
+.section {
+    margin-bottom: 40px;
+}
+
+.note {
+    background: #eef2f7;
+    padding: 15px;
+    border-left: 4px solid #4a6fa5;
+}
+
+footer {
+    text-align: center;
+    padding: 20px;
+    color: #777;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>Geometrický filtr podobnosti</h1>
+<p>Strukturální interpretace rovnice $x^n + y^n = z^n$</p>
+<p>Vladimír Ros (2026)</p>
+</header>
+
+<div class="container">
+
+<div class="section">
+<h2>Abstrakt</h2>
+<p>
+Prezentujeme geometrickou heuristiku založenou na podobnosti pravoúhlých trojúhelníků.
+Ukazujeme, že pro $n > 2$ dochází ke strukturální rigiditě, která brání zachování podobnosti.
+</p>
+</div>
+
+<div class="section note">
+<b>Interpretace:</b><br>
+Model odpovídá zrychlenému pohybu. Pro $n=2$ (dráha $\sim t^2$) je geometrie stabilní,
+pro $n>2$ dochází k deformaci a ztrátě podobnosti.
+</div>
+
+<div class="section">
+<h2>Model</h2>
+<p style="text-align:center;">
+$a = t,\quad b = 2t^{n-1},\quad S = t^n$
+</p>
+</div>
+
+<div class="section">
+<h2>Interaktivní vizualizace</h2>
+
+<div class="controls">
+n: <input type="range" id="nSlider" min="2" max="6" value="2">
+<span id="nVal">2</span>
+
+<br><br>
+
+t: <input type="range" id="tSlider" min="1" max="10" value="5">
+<span id="tVal">5</span>
+
+<br><br>
+
+s: <input type="range" id="sSlider" min="1" max="10" value="3">
+<span id="sVal">3</span>
+</div>
+
+<canvas id="triCanvas" width="450" height="350"></canvas>
+<canvas id="logCanvas" width="450" height="350"></canvas>
+
+<p id="result"></p>
+
+</div>
+
+<div class="section">
+<h2>Závěr</h2>
+<ul>
+<li>$n=2$ → podobnost funguje</li>
+<li>$n>2$ → rigidita struktury</li>
+</ul>
+
+<p>
+Geometrická struktura funguje jako filtr pro existenci řešení.
+</p>
+</div>
+
+</div>
+
+<footer>
+Tento článek je heuristický a nepředstavuje formální důkaz.
+</footer>
+
+<script>
+const triCtx = document.getElementById("triCanvas").getContext("2d");
+const logCtx = document.getElementById("logCanvas").getContext("2d");
+
+const nSlider = document.getElementById("nSlider");
+const tSlider = document.getElementById("tSlider");
+const sSlider = document.getElementById("sSlider");
+
+function drawTriangle(ctx, x0, y0, a, b, color) {
+    let scale = Math.min(150/a, 150/b);
+
+    let A = [x0, y0];
+    let B = [x0 + a*scale, y0];
+    let C = [x0 + a*scale, y0 - b*scale];
+
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(...A);
+    ctx.lineTo(...B);
+    ctx.lineTo(...C);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.stroke();
+}
+
+function drawLogGraph(n) {
+    logCtx.clearRect(0,0,450,350);
+
+    let scaleX = 80;
+    let scaleY = 80;
+
+    function X(x){ return 50 + x*scaleX; }
+    function Y(y){ return 300 - y*scaleY; }
+
+    logCtx.strokeStyle = "blue";
+    logCtx.beginPath();
+
+    for (let i=1;i<=10;i++) {
+        let x = Math.log(i);
+        let y = Math.log(2) + (n-1)*Math.log(i);
+
+        if (i==1) logCtx.moveTo(X(x),Y(y));
+        else logCtx.lineTo(X(x),Y(y));
+    }
+    logCtx.stroke();
+}
+
+function draw() {
+    let n = +nSlider.value;
+    let t = +tSlider.value;
+    let s = +sSlider.value;
+
+    nVal.innerText = n;
+    tVal.innerText = t;
+    sVal.innerText = s;
+
+    let a1 = t;
+    let b1 = 2*Math.pow(t,n-1);
+
+    let a2 = s;
+    let b2 = 2*Math.pow(s,n-1);
+
+    triCtx.clearRect(0,0,450,350);
+
+    drawTriangle(triCtx,50,300,a1,b1,"rgba(0,0,255,0.2)");
+    drawTriangle(triCtx,250,300,a2,b2,"rgba(255,0,0,0.2)");
+
+    drawLogGraph(n);
+
+    let r1 = a2/a1;
+    let r2 = b2/b1;
+    let delta = Math.abs(r1-r2);
+
+    let msg = delta<0.01 ? "✔ podobné" : "✖ nepodobné";
+
+    result.innerHTML =
+        "Poměr a: "+r1.toFixed(4)+
+        " | Poměr b: "+r2.toFixed(4)+
+        "<br>Δ = "+delta.toExponential(2)+
+        "<br><b>"+msg+"</b>";
+}
+
+nSlider.oninput = draw;
+tSlider.oninput = draw;
+sSlider.oninput = draw;
+
+draw();
+</script>
+
+</body>
+</html>

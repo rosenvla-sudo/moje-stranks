@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Geometric Similarity as a Structural Filter</title>
+
+<script>
+window.MathJax = { tex: { inlineMath: [['$', '$']] } };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<style>
+body {
+    font-family: Georgia, serif;
+    margin: 0;
+    background: #f6f8fb;
+    color: #222;
+}
+
+header {
+    background: #0d1117;
+    color: white;
+    padding: 50px;
+    text-align: center;
+}
+
+.container {
+    max-width: 1000px;
+    margin: auto;
+    padding: 30px;
+    background: white;
+}
+
+h1, h2 {
+    text-align: center;
+}
+
+.section {
+    margin-bottom: 40px;
+}
+
+.note {
+    background: #eef3f9;
+    padding: 15px;
+    border-left: 4px solid #3b82f6;
+}
+
+canvas {
+    border: 1px solid #ccc;
+    margin: 10px;
+}
+
+.controls {
+    text-align: center;
+    margin: 20px;
+}
+
+.references {
+    font-size: 0.95em;
+}
+
+.references li {
+    margin-bottom: 10px;
+}
+
+footer {
+    text-align: center;
+    padding: 20px;
+    color: #777;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>Geometric Similarity as a Structural Filter</h1>
+<p>Heuristic Interpretation of $x^n + y^n = z^n$</p>
+<p>Vladimír Rosenzweig (2026)</p>
+</header>
+
+<div class="container">
+
+<div class="section">
+<h2>Abstract</h2>
+<p>
+We present a geometric heuristic interpretation of the equation 
+$x^n + y^n = z^n$, a central object in number theory 
+[<a href="#ref1">1</a>, <a href="#ref2">2</a>]. 
+The model is based on similarity properties of right triangles and 
+reveals a structural distinction between the quadratic case and higher powers.
+</p>
+</div>
+
+<div class="section note">
+<b>Interpretation (Accelerated Motion):</b><br>
+The model can be interpreted as a geometric analogue of motion. 
+For $n=2$, it corresponds to uniformly accelerated motion 
+($s \sim t^2$), while for $n>2$ the structure becomes nonlinear 
+and incompatible with similarity.
+</div>
+
+<div class="section">
+<h2>Model</h2>
+<p style="text-align:center;">
+$a = t,\quad b = 2t^{n-1},\quad S = t^n$
+</p>
+
+<p>
+The area encodes the power structure directly, linking geometry with algebraic growth.
+</p>
+</div>
+
+<div class="section">
+<h2>Similarity Condition</h2>
+
+<p>
+Consider two triangles:
+</p>
+
+<p style="text-align:center;">
+$T = (t, 2t^{n-1}), \quad T' = (s, 2s^{n-1})$
+</p>
+
+<p>
+Similarity requires:
+</p>
+
+<p style="text-align:center;">
+$\frac{s}{t} = \frac{2s^{n-1}}{2t^{n-1}} \Rightarrow s = kt \Rightarrow k^{n-1} = k$
+</p>
+
+<p>
+Thus:
+</p>
+
+<ul>
+<li>$n=2$: similarity holds for arbitrary scaling</li>
+<li>$n>2$: only trivial solution $k=1$</li>
+</ul>
+
+</div>
+
+<div class="section">
+<h2>Interactive Visualization</h2>
+
+<div class="controls">
+n: <input type="range" id="nSlider" min="2" max="6" value="2">
+<span id="nVal">2</span>
+
+<br><br>
+
+t: <input type="range" id="tSlider" min="1" max="10" value="5">
+<span id="tVal">5</span>
+
+<br><br>
+
+s: <input type="range" id="sSlider" min="1" max="10" value="3">
+<span id="sVal">3</span>
+</div>
+
+<canvas id="triCanvas" width="450" height="350"></canvas>
+<canvas id="logCanvas" width="450" height="350"></canvas>
+
+<p id="result"></p>
+
+</div>
+
+<div class="section">
+<h2>Conclusion</h2>
+
+<p>
+The classical case $n=2$ admits a rich similarity structure 
+related to Pythagorean triples. In contrast, higher powers exhibit 
+structural rigidity, preventing nontrivial similarity transformations.
+</p>
+
+<p>
+This supports the interpretation that geometric similarity acts as a 
+structural filter for the existence of integer solutions.
+</p>
+
+</div>
+
+<div class="section references">
+<h2>References</h2>
+
+<ol>
+<li id="ref1">
+A. Wiles, <i>Modular elliptic curves and Fermat's Last Theorem</i>, 
+Annals of Mathematics, 1995.
+</li>
+
+<li id="ref2">
+P. Ribenboim, <i>Fermat’s Last Theorem for Amateurs</i>, Springer.
+</li>
+
+<li id="ref3">
+L. Euler, <i>Elements of Algebra</i>.
+</li>
+
+<li id="ref4">
+K. Ireland, M. Rosen, <i>A Classical Introduction to Modern Number Theory</i>.
+</li>
+
+</ol>
+</div>
+
+</div>
+
+<footer>
+This work presents a heuristic interpretation and does not constitute a formal proof.
+</footer>
+
+<script>
+const triCtx = document.getElementById("triCanvas").getContext("2d");
+const logCtx = document.getElementById("logCanvas").getContext("2d");
+
+const nSlider = document.getElementById("nSlider");
+const tSlider = document.getElementById("tSlider");
+const sSlider = document.getElementById("sSlider");
+
+function drawTriangle(ctx, x0, y0, a, b, color) {
+    let scale = Math.min(150/a, 150/b);
+
+    let A = [x0, y0];
+    let B = [x0 + a*scale, y0];
+    let C = [x0 + a*scale, y0 - b*scale];
+
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(...A);
+    ctx.lineTo(...B);
+    ctx.lineTo(...C);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.stroke();
+}
+
+function drawLogGraph(n) {
+    logCtx.clearRect(0,0,450,350);
+
+    let scaleX = 80;
+    let scaleY = 80;
+
+    function X(x){ return 50 + x*scaleX; }
+    function Y(y){ return 300 - y*scaleY; }
+
+    logCtx.strokeStyle = "blue";
+    logCtx.beginPath();
+
+    for (let i=1;i<=10;i++) {
+        let x = Math.log(i);
+        let y = Math.log(2) + (n-1)*Math.log(i);
+
+        if (i==1) logCtx.moveTo(X(x),Y(y));
+        else logCtx.lineTo(X(x),Y(y));
+    }
+    logCtx.stroke();
+}
+
+function draw() {
+    let n = +nSlider.value;
+    let t = +tSlider.value;
+    let s = +sSlider.value;
+
+    nVal.innerText = n;
+    tVal.innerText = t;
+    sVal.innerText = s;
+
+    let a1 = t;
+    let b1 = 2*Math.pow(t,n-1);
+
+    let a2 = s;
+    let b2 = 2*Math.pow(s,n-1);
+
+    triCtx.clearRect(0,0,450,350);
+
+    drawTriangle(triCtx,50,300,a1,b1,"rgba(0,0,255,0.2)");
+    drawTriangle(triCtx,250,300,a2,b2,"rgba(255,0,0,0.2)");
+
+    drawLogGraph(n);
+
+    let r1 = a2/a1;
+    let r2 = b2/b1;
+    let delta = Math.abs(r1-r2);
+
+    let msg = delta<0.01 ? "✔ Similar" : "✖ Not similar";
+
+    result.innerHTML =
+        "Ratio a: "+r1.toFixed(4)+
+        " | Ratio b: "+r2.toFixed(4)+
+        "<br>Δ = "+delta.toExponential(2)+
+        "<br><b>"+msg+"</b>";
+}
+
+nSlider.oninput = draw;
+tSlider.oninput = draw;
+sSlider.oninput = draw;
+
+draw();
+</script>
+
+</body>
+</html>
